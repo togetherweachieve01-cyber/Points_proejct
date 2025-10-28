@@ -1,0 +1,764 @@
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/Project_Grades/index.html b/Project_Grades/index.html
+new file mode 100644
+index 0000000000000000000000000000000000000000..5a0c5f68972b16c04a8c1e43e9619a48c03a6acb
+--- /dev/null
++++ b/Project_Grades/index.html
+@@ -0,0 +1,754 @@
++<!DOCTYPE html>
++<html lang="en">
++<head>
++  <meta charset="UTF-8" />
++  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++  <title>Poetry Contest Grading Calculator</title>
++  <style>
++    :root {
++      color-scheme: light dark;
++      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
++      --accent: #2d7dd2;
++      --accent-muted: #c8e1ff;
++      --bg: #f6f8fa;
++      --border: #d0d7de;
++      --danger: #c93c3c;
++    }
++
++    body {
++      margin: 0;
++      padding: 0;
++      background: var(--bg);
++      color: #1f2328;
++    }
++
++    header {
++      background: var(--accent);
++      color: white;
++      padding: 1.5rem 1.25rem;
++    }
++
++    header h1 {
++      margin: 0 0 0.5rem;
++      font-size: 1.8rem;
++    }
++
++    main {
++      padding: 1.5rem;
++      max-width: 1200px;
++      margin: 0 auto;
++    }
++
++    .info-card {
++      background: white;
++      border: 1px solid var(--border);
++      border-radius: 12px;
++      padding: 1rem 1.25rem;
++      margin-bottom: 1.5rem;
++      box-shadow: 0 8px 18px -12px rgba(31, 35, 40, 0.35);
++    }
++
++    .info-card h2 {
++      margin-top: 0;
++      font-size: 1.2rem;
++    }
++
++    .status-message {
++      margin: 0.5rem 0 0;
++      padding: 0.5rem 0.75rem;
++      border-radius: 8px;
++      background: var(--accent-muted);
++      color: #0d306b;
++      font-size: 0.95rem;
++    }
++
++    .actions {
++      display: flex;
++      flex-wrap: wrap;
++      align-items: center;
++      justify-content: space-between;
++      gap: 0.75rem;
++      margin-bottom: 1rem;
++    }
++
++    button {
++      border: none;
++      border-radius: 999px;
++      padding: 0.5rem 1rem;
++      font-size: 0.95rem;
++      cursor: pointer;
++      background: var(--accent);
++      color: white;
++      transition: transform 0.1s ease, background 0.2s ease;
++    }
++
++    button:hover {
++      transform: translateY(-1px);
++      background: #215a91;
++    }
++
++    button.danger {
++      background: var(--danger);
++    }
++
++    button.danger:hover {
++      background: #a12f2f;
++    }
++
++    .session-card {
++      background: white;
++      border: 1px solid var(--border);
++      border-radius: 16px;
++      padding: 1rem 1.25rem;
++      margin-bottom: 1.75rem;
++      box-shadow: 0 12px 24px -18px rgba(31, 35, 40, 0.4);
++    }
++
++    .session-header {
++      display: flex;
++      flex-wrap: wrap;
++      gap: 0.75rem;
++      justify-content: space-between;
++      align-items: center;
++      border-bottom: 1px solid var(--border);
++      padding-bottom: 0.75rem;
++      margin-bottom: 1rem;
++    }
++
++    .session-header .session-meta {
++      display: flex;
++      flex-wrap: wrap;
++      align-items: center;
++      gap: 0.75rem;
++    }
++
++    .session-header label {
++      font-weight: 600;
++      display: flex;
++      align-items: center;
++      gap: 0.35rem;
++    }
++
++    .session-total {
++      font-weight: 700;
++      font-size: 1.05rem;
++    }
++
++    table {
++      width: 100%;
++      border-collapse: collapse;
++    }
++
++    th, td {
++      border-bottom: 1px solid var(--border);
++      padding: 0.5rem 0.4rem;
++      text-align: left;
++      vertical-align: top;
++      font-size: 0.95rem;
++    }
++
++    th {
++      text-transform: uppercase;
++      letter-spacing: 0.04em;
++      font-size: 0.75rem;
++      color: #57606a;
++    }
++
++    tr:last-child td {
++      border-bottom: none;
++    }
++
++    input[type="number"],
++    input[type="date"] {
++      padding: 0.35rem 0.45rem;
++      border-radius: 8px;
++      border: 1px solid var(--border);
++      font-size: 0.95rem;
++      min-width: 3rem;
++    }
++
++    input[type="checkbox"] {
++      transform: scale(1.1);
++    }
++
++    .revision-days {
++      display: flex;
++      flex-wrap: wrap;
++      gap: 0.35rem;
++    }
++
++    .revision-chip {
++      display: flex;
++      align-items: center;
++      gap: 0.35rem;
++      background: var(--bg);
++      border: 1px solid var(--border);
++      border-radius: 999px;
++      padding: 0.25rem 0.6rem;
++      font-size: 0.85rem;
++    }
++
++    .revision-chip span {
++      font-weight: 600;
++    }
++
++    .empty-state {
++      text-align: center;
++      color: #57606a;
++      padding: 2rem 1rem;
++      border: 2px dashed var(--border);
++      border-radius: 12px;
++    }
++
++    footer {
++      margin-top: 2.5rem;
++      font-size: 0.9rem;
++      color: #57606a;
++      text-align: center;
++    }
++
++    .grand-total {
++      font-size: 1.3rem;
++      font-weight: 700;
++      text-align: right;
++      margin-top: 1.5rem;
++    }
++
++    .error {
++      background: rgba(201, 60, 60, 0.15);
++      color: #6f1717;
++      border: 1px solid rgba(201, 60, 60, 0.35);
++    }
++
++    @media (max-width: 880px) {
++      th:nth-child(5),
++      th:nth-child(6),
++      th:nth-child(7),
++      td:nth-child(5),
++      td:nth-child(6),
++      td:nth-child(7) {
++        display: none;
++      }
++
++      .session-header {
++        flex-direction: column;
++        align-items: flex-start;
++      }
++
++      .session-header .session-meta {
++        width: 100%;
++      }
++
++      .grand-total {
++        text-align: left;
++      }
++    }
++  </style>
++</head>
++<body>
++  <header>
++    <h1>Poetry Contest Grading Calculator</h1>
++    <p>Track recitation and revision scores for every participant across all sessions. Point values come directly from <code>config.json</code>.</p>
++  </header>
++  <main>
++    <section class="info-card" id="config-card">
++      <h2>Current Point Values</h2>
++      <p><strong>Recitation Points per Section:</strong> <span id="recitation-points">&mdash;</span></p>
++      <p><strong>Revision Points per Section:</strong> <span id="revision-points">&mdash;</span></p>
++      <p class="status-message" id="names-count">Loaded participants: <span id="participant-count">0</span></p>
++      <p class="status-message" id="instructions">Update the values in <code>config.json</code> or modify <code>names.txt</code> at any time. The page always recalculates from the stored raw data using the latest configuration.</p>
++      <p class="status-message" id="status-area" hidden></p>
++    </section>
++
++    <div class="actions">
++      <button id="add-session-btn" type="button">Add New Session</button>
++      <div class="grand-total">Overall Total: <span id="grand-total">0</span></div>
++    </div>
++
++    <div id="sessions-container"></div>
++
++    <div id="empty-state" class="empty-state" hidden>
++      <p>No sessions yet. Click <strong>Add New Session</strong> to get started.</p>
++    </div>
++
++    <footer>
++      <p>All session data is stored in your browser. Clear your browser storage to reset.</p>
++    </footer>
++  </main>
++
++  <template id="session-template">
++    <section class="session-card">
++      <div class="session-header">
++        <div class="session-meta">
++          <label>Date
++            <input type="date" class="session-date" />
++          </label>
++          <div class="session-total">Session Total: <span class="session-total-value">0</span></div>
++        </div>
++        <button type="button" class="remove-session danger">Remove Session</button>
++      </div>
++      <div class="table-wrapper">
++        <table>
++          <thead>
++            <tr>
++              <th>Present</th>
++              <th>Participant</th>
++              <th>Sections</th>
++              <th>Revision Days (per section)</th>
++              <th>Recitation</th>
++              <th>Revision</th>
++              <th>Total</th>
++            </tr>
++          </thead>
++          <tbody></tbody>
++        </table>
++      </div>
++    </section>
++  </template>
++
++  <script>
++    const CONFIG_URL = 'config.json';
++    const NAMES_URL = 'names.txt';
++    const STORAGE_KEY = 'project_grades_sessions_v1';
++
++    let config = { recitation_points: 0, revision_points: 0 };
++    let participantNames = [];
++    let sessions = [];
++
++    document.addEventListener('DOMContentLoaded', () => {
++      initializeApp();
++      document.getElementById('add-session-btn').addEventListener('click', () => {
++        addSession();
++        saveSessions();
++        renderSessions();
++      });
++    });
++
++    async function initializeApp() {
++      try {
++        await loadConfigAndNames();
++        loadSessions();
++        renderSessions();
++        updateGrandTotal();
++      } catch (error) {
++        displayStatus(error.message || 'Unable to initialize the application.', true);
++      }
++    }
++
++    async function loadConfigAndNames() {
++      const statusArea = document.getElementById('status-area');
++      statusArea.hidden = true;
++
++      try {
++        const [configResponse, namesResponse] = await Promise.all([
++          fetch(CONFIG_URL, { cache: 'no-store' }),
++          fetch(NAMES_URL, { cache: 'no-store' })
++        ]);
++
++        if (!configResponse.ok) {
++          throw new Error(`Could not load config.json (status ${configResponse.status}).`);
++        }
++        if (!namesResponse.ok) {
++          throw new Error(`Could not load names.txt (status ${namesResponse.status}).`);
++        }
++
++        const configData = await configResponse.json();
++        const namesText = await namesResponse.text();
++
++        config = normalizeConfig(configData);
++        participantNames = parseNames(namesText);
++
++        document.getElementById('recitation-points').textContent = formatNumber(config.recitation_points);
++        document.getElementById('revision-points').textContent = formatNumber(config.revision_points);
++        document.getElementById('participant-count').textContent = participantNames.length;
++      } catch (error) {
++        displayStatus(error.message, true);
++        throw error;
++      }
++    }
++
++    function normalizeConfig(data) {
++      const normalized = { ...config };
++      if (typeof data.recitation_points === 'number' && !Number.isNaN(data.recitation_points)) {
++        normalized.recitation_points = data.recitation_points;
++      }
++      if (typeof data.revision_points === 'number' && !Number.isNaN(data.revision_points)) {
++        normalized.revision_points = data.revision_points;
++      }
++      return normalized;
++    }
++
++    function parseNames(raw) {
++      return raw
++        .split(/\r?\n/)
++        .map((name) => name.trim())
++        .filter((name) => name.length > 0);
++    }
++
++    function loadSessions() {
++      const stored = localStorage.getItem(STORAGE_KEY);
++      if (!stored) {
++        sessions = [];
++        return;
++      }
++
++      try {
++        const parsed = JSON.parse(stored);
++        if (Array.isArray(parsed)) {
++          sessions = parsed.map((session) => normalizeSession(session));
++        } else {
++          sessions = [];
++        }
++      } catch (error) {
++        console.warn('Unable to parse saved sessions:', error);
++        sessions = [];
++      }
++    }
++
++    function generateId() {
++      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
++        return crypto.randomUUID();
++      }
++      return `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
++    }
++
++    function normalizeSession(session) {
++      const normalized = {
++        id: session.id || generateId(),
++        date: session.date || '',
++        participants: {}
++      };
++
++      if (session && typeof session.participants === 'object') {
++        for (const [name, data] of Object.entries(session.participants)) {
++          normalized.participants[name] = normalizeParticipant(data);
++        }
++      }
++
++      // Ensure every known participant has an entry
++      for (const name of participantNames) {
++        if (!normalized.participants[name]) {
++          normalized.participants[name] = createEmptyParticipant();
++        }
++      }
++
++      return normalized;
++    }
++
++    function normalizeParticipant(data) {
++      const participant = createEmptyParticipant();
++      if (!data) return participant;
++
++      participant.present = Boolean(data.present);
++      const sections = Number.parseInt(data.sections, 10);
++      participant.sections = Number.isFinite(sections) && sections > 0 ? sections : 0;
++
++      if (Array.isArray(data.revisionDays)) {
++        participant.revisionDays = data.revisionDays
++          .map((value) => clamp(Number.parseInt(value, 10), 0, 5))
++          .slice(0, participant.sections);
++      }
++
++      ensureRevisionLength(participant);
++      return participant;
++    }
++
++    function createEmptyParticipant() {
++      return {
++        present: false,
++        sections: 0,
++        revisionDays: []
++      };
++    }
++
++    function ensureRevisionLength(participant) {
++      const desired = participant.sections;
++      if (participant.revisionDays.length > desired) {
++        participant.revisionDays = participant.revisionDays.slice(0, desired);
++      } else {
++        while (participant.revisionDays.length < desired) {
++          participant.revisionDays.push(0);
++        }
++      }
++    }
++
++    function saveSessions() {
++      localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
++    }
++
++    function addSession() {
++      const newSession = {
++        id: generateId(),
++        date: new Date().toISOString().slice(0, 10),
++        participants: {}
++      };
++
++      for (const name of participantNames) {
++        newSession.participants[name] = createEmptyParticipant();
++      }
++
++      sessions.push(newSession);
++    }
++
++    function renderSessions() {
++      const container = document.getElementById('sessions-container');
++      container.innerHTML = '';
++
++      if (sessions.length === 0) {
++        document.getElementById('empty-state').hidden = false;
++        updateGrandTotal();
++        return;
++      }
++
++      document.getElementById('empty-state').hidden = true;
++
++      for (const session of sessions) {
++        syncParticipants(session);
++        const fragment = renderSessionCard(session);
++        container.appendChild(fragment);
++      }
++
++      updateGrandTotal();
++    }
++
++    function syncParticipants(session) {
++      session.participants = session.participants || {};
++      for (const name of participantNames) {
++        if (!session.participants[name]) {
++          session.participants[name] = createEmptyParticipant();
++        }
++      }
++    }
++
++    function renderSessionCard(session) {
++      const template = document.getElementById('session-template');
++      const clone = template.content.firstElementChild.cloneNode(true);
++      const dateInput = clone.querySelector('.session-date');
++      const tbody = clone.querySelector('tbody');
++      const removeButton = clone.querySelector('.remove-session');
++      const sessionTotalEl = clone.querySelector('.session-total-value');
++
++      clone.dataset.sessionId = session.id;
++      dateInput.value = session.date || '';
++
++      dateInput.addEventListener('change', (event) => {
++        session.date = event.target.value;
++        saveSessions();
++      });
++
++      removeButton.addEventListener('click', () => {
++        if (confirm('Remove this session? This cannot be undone.')) {
++          sessions = sessions.filter((item) => item.id !== session.id);
++          saveSessions();
++          renderSessions();
++        }
++      });
++
++      for (const name of participantNames) {
++        const participant = session.participants[name];
++        const row = document.createElement('tr');
++
++        const presentCell = document.createElement('td');
++        const presentCheckbox = document.createElement('input');
++        presentCheckbox.type = 'checkbox';
++        presentCheckbox.checked = participant.present;
++        presentCheckbox.addEventListener('change', () => {
++          participant.present = presentCheckbox.checked;
++          if (!participant.present) {
++            participant.sections = 0;
++            participant.revisionDays = [];
++          }
++          updateParticipantRow(row, participant, session, sessionTotalEl);
++          saveSessions();
++          updateSessionTotal(session, sessionTotalEl);
++          updateGrandTotal();
++        });
++        presentCell.appendChild(presentCheckbox);
++        row.appendChild(presentCell);
++
++        const nameCell = document.createElement('td');
++        nameCell.textContent = name;
++        row.appendChild(nameCell);
++
++        const sectionsCell = document.createElement('td');
++        const sectionsInput = document.createElement('input');
++        sectionsInput.type = 'number';
++        sectionsInput.min = '0';
++        sectionsInput.step = '1';
++        sectionsInput.value = participant.sections;
++        sectionsInput.addEventListener('input', () => {
++          const value = Number.parseInt(sectionsInput.value, 10);
++          participant.sections = Number.isFinite(value) && value > 0 ? value : 0;
++          ensureRevisionLength(participant);
++          updateParticipantRow(row, participant, session, sessionTotalEl);
++          saveSessions();
++          updateSessionTotal(session, sessionTotalEl);
++          updateGrandTotal();
++        });
++        sectionsCell.appendChild(sectionsInput);
++        row.appendChild(sectionsCell);
++
++        const revisionCell = document.createElement('td');
++        const revisionContainer = document.createElement('div');
++        revisionContainer.className = 'revision-days';
++        revisionCell.appendChild(revisionContainer);
++        row.appendChild(revisionCell);
++
++        const recitationCell = document.createElement('td');
++        recitationCell.className = 'recitation-score';
++        row.appendChild(recitationCell);
++
++        const revisionScoreCell = document.createElement('td');
++        revisionScoreCell.className = 'revision-score';
++        row.appendChild(revisionScoreCell);
++
++        const totalCell = document.createElement('td');
++        totalCell.className = 'total-score';
++        row.appendChild(totalCell);
++
++        tbody.appendChild(row);
++
++        updateParticipantRow(row, participant, session, sessionTotalEl);
++      }
++
++      updateSessionTotal(session, sessionTotalEl);
++
++      return clone;
++    }
++
++    function updateParticipantRow(row, participant, session, sessionTotalEl) {
++      const sectionsInput = row.querySelector('input[type="number"]');
++      const revisionContainer = row.querySelector('.revision-days');
++      const recitationCell = row.querySelector('.recitation-score');
++      const revisionScoreCell = row.querySelector('.revision-score');
++      const totalCell = row.querySelector('.total-score');
++
++      const disabled = !participant.present;
++      sectionsInput.disabled = disabled;
++
++      if (disabled) {
++        sectionsInput.value = 0;
++        revisionContainer.innerHTML = '';
++        recitationCell.textContent = '0';
++        revisionScoreCell.textContent = '0';
++        totalCell.textContent = '0';
++        return;
++      }
++
++      sectionsInput.value = participant.sections;
++      ensureRevisionLength(participant);
++      renderRevisionInputs(revisionContainer, participant, () => {
++        saveSessions();
++        updateParticipantScores(participant, recitationCell, revisionScoreCell, totalCell);
++        updateSessionTotal(session, sessionTotalEl);
++        updateGrandTotal();
++      });
++      updateParticipantScores(participant, recitationCell, revisionScoreCell, totalCell);
++    }
++
++    function renderRevisionInputs(container, participant, onChange) {
++      container.innerHTML = '';
++
++      if (participant.sections === 0) {
++        return;
++      }
++
++      participant.revisionDays.forEach((value, index) => {
++        const chip = document.createElement('label');
++        chip.className = 'revision-chip';
++        const span = document.createElement('span');
++        span.textContent = `Section ${index + 1}`;
++        const input = document.createElement('input');
++        input.type = 'number';
++        input.min = '0';
++        input.max = '5';
++        input.value = value;
++        input.addEventListener('input', () => {
++          const number = clamp(Number.parseInt(input.value, 10), 0, 5);
++          input.value = number;
++          participant.revisionDays[index] = number;
++          onChange();
++        });
++        chip.appendChild(span);
++        chip.appendChild(input);
++        container.appendChild(chip);
++      });
++    }
++
++    function updateParticipantScores(participant, recitationCell, revisionCell, totalCell) {
++      const recitationScore = participant.sections * config.recitation_points;
++      const revisionScore = participant.revisionDays.reduce((sum, days) => {
++        if (days >= 5) {
++          return sum + config.revision_points;
++        }
++        if (days === 4) {
++          return sum + config.revision_points / 2;
++        }
++        return sum;
++      }, 0);
++      const total = recitationScore + revisionScore;
++
++      recitationCell.textContent = formatNumber(recitationScore);
++      revisionCell.textContent = formatNumber(revisionScore);
++      totalCell.textContent = formatNumber(total);
++    }
++
++    function updateSessionTotal(session, totalEl) {
++      const total = participantNames.reduce((sum, name) => {
++        const participant = session.participants[name];
++        if (!participant || !participant.present) {
++          return sum;
++        }
++        const recitation = participant.sections * config.recitation_points;
++        const revision = participant.revisionDays.reduce((acc, days) => {
++          if (days >= 5) return acc + config.revision_points;
++          if (days === 4) return acc + config.revision_points / 2;
++          return acc;
++        }, 0);
++        return sum + recitation + revision;
++      }, 0);
++
++      totalEl.textContent = formatNumber(total);
++      saveSessions();
++      updateGrandTotal();
++    }
++
++    function updateGrandTotal() {
++      const grandTotalValue = sessions.reduce((sum, session) => {
++        return sum + participantNames.reduce((innerSum, name) => {
++          const participant = session.participants?.[name];
++          if (!participant || !participant.present) return innerSum;
++          const recitation = participant.sections * config.recitation_points;
++          const revision = participant.revisionDays.reduce((acc, days) => {
++            if (days >= 5) return acc + config.revision_points;
++            if (days === 4) return acc + config.revision_points / 2;
++            return acc;
++          }, 0);
++          return innerSum + recitation + revision;
++        }, 0);
++      }, 0);
++
++      document.getElementById('grand-total').textContent = formatNumber(grandTotalValue);
++    }
++
++    function displayStatus(message, isError = false) {
++      const statusArea = document.getElementById('status-area');
++      statusArea.hidden = false;
++      statusArea.textContent = message;
++      statusArea.classList.toggle('error', isError);
++    }
++
++    function formatNumber(value) {
++      if (Number.isInteger(value)) {
++        return value.toString();
++      }
++      return value.toFixed(2);
++    }
++
++    function clamp(value, min, max) {
++      if (!Number.isFinite(value)) return min;
++      return Math.min(Math.max(value, min), max);
++    }
++  </script>
++</body>
++</html>
+ 
+EOF
+)
