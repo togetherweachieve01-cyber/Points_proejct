@@ -1,0 +1,15 @@
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/Project_Grades/names.txt b/Project_Grades/names.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..a857bc6250619ca3f2d03123a98b1cc59ed1d244
+--- /dev/null
++++ b/Project_Grades/names.txt
+@@ -0,0 +1,5 @@
++Alice Smith
++Bob Johnson
++Charlie Doe
++
++Dana Ray
+ 
+EOF
+)
