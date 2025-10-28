@@ -1,0 +1,11 @@
+
+diff --git a/Project_Grades/config.json b/Project_Grades/config.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..a876e190fd47ef0862d88ee12e0177f3d0c14aa0
+--- /dev/null
++++ b/Project_Grades/config.json
+@@ -0,0 +1,4 @@
++{
++  "recitation_points": 15,
++  "revision_points": 25
++}
